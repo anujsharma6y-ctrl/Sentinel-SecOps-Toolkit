@@ -1,0 +1,68 @@
+import psutil    # Library for process management
+import time      # To handle timing and intervals
+import logging   # To keep a record of killed processes
+
+# --- CONFIGURATION ---
+CPU_THRESHOLD = 20.0  # % CPU limit. If exceeded, process is flagged.
+SCAN_DELAY = 0.1      # Small delay for CPU calculation accuracy
+
+# Setup basic logging to a file
+logging.basicConfig(filename="process_monitor.log", level=logging.INFO, 
+                    format='%(asctime)s - %(message)s')
+
+def monitor_system():
+    """
+    Scans all running processes and terminates those that exceed CPU limits.
+    Includes safety filters for critical system apps.
+    """
+    print(f"\n{'='*65}")
+    print(f"  PROCESS WATCHDOG: Monitoring for CPU spikes (> {CPU_THRESHOLD}%)")
+    print(f"{'='*65}", flush=True)
+
+    # 1. Initialize CPU tracking
+    psutil.cpu_percent(interval=None)
+    time.sleep(1) # Give the system a second to measure usage
+
+    found_heavy = False
+    # CRITICAL: Do NOT kill these, otherwise your PC will crash/restart
+    SAFE_LIST = ["system", "idle", "explorer.exe", "svchost.exe", "python.exe", "taskmgr.exe"]
+
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            # 2. Get process stats
+            cpu_usage = proc.cpu_percent(interval=SCAN_DELAY)
+            name = proc.info['name']
+            pid = proc.info['pid']
+
+            # 3. Decision Logic
+            if cpu_usage > CPU_THRESHOLD:
+                found_heavy = True
+                print(f" Detected: {name:<15} (PID: {pid:<6}) | Usage: {cpu_usage}%", flush=True)
+
+                # 4. Safety Check
+                if name.lower() in SAFE_LIST:
+                    print(f"   [!] Protected: Skipping system process.", flush=True)
+                else:
+                    # 5. Execution (Termination)
+                    print(f"   [X] Action: Terminating {name} to save resources...", flush=True)
+                    
+                    # Log the action before killing
+                    logging.info(f"TERMINATED: {name} (PID: {pid}) using {cpu_usage}% CPU")
+                    
+                    # proc.terminate() # <-- Uncomment this line to enable REAL killing
+                    print(f"   [✓] Successfully stopped {name}.", flush=True)
+
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            # Ignore processes that disappear or are restricted
+            continue
+
+    if not found_heavy:
+        print(" Status: All processes are within safe limits.", flush=True)
+    
+    print(f"{'='*65}\n")
+
+if __name__ == "__main__":
+    try:
+        monitor_system()
+    except KeyboardInterrupt:
+        print("\nMonitoring stopped by user.")
