@@ -1,0 +1,51 @@
+import requests
+def audit_security_headers(url): 
+    #Analyzes a website's HTTP response headers for security best practices.
+    # Ensure the URL starts with https for a secure connection check
+    if not url.startswith("http"):
+        url = "https://" + url
+
+    print(f"\n{'='*65}")
+    print(f" SECURITY HEADER AUDIT FOR: {url}")
+    print(f"{'='*65}\n", flush=True)
+
+    try:
+        # We use a timeout to prevent the script from hanging
+        response = requests.get(url, timeout=10)
+        headers = response.headers
+
+        # Define the 'Golden Standard' of security headers
+        # Key = Header Name, Value = Description of its security role
+        security_checklist = {
+            "Content-Security-Policy": "Protects against Cross-Site Scripting (XSS).",
+            "Strict-Transport-Security": "Ensures the browser only communicates via HTTPS.",
+            "X-Frame-Options": "Prevents Clickjacking by disabling site framing.",
+            "X-Content-Type-Options": "Stops the browser from sniffing MIME types.",
+            "Referrer-Policy": "Restricts how much info is leaked when clicking links.",
+            "Permissions-Policy": "Controls which browser features (camera, mic) can be used."
+        }
+
+        score = 0
+        print(f"{'HEADER':<30} | {'STATUS':<12}", flush=True)
+        print("-" * 65)
+
+        for header, description in security_checklist.items():
+            if header in headers:
+                print(f" {header:<28} | INSTALLED")
+                score += 1
+            else:
+                print(f" {header:<28} | MISSING")
+                print(f"  SECURITY TIP: {description}")
+
+        # Final Summary
+        print("\n" + "="*65)
+        print(f" FINAL SECURITY SCORE: {score} / {len(security_checklist)}")
+        print("="*65 + "\n")
+
+    except requests.exceptions.RequestException as e:
+        print(f" CONNECTION ERROR: Unable to reach {url}. Check your internet or URL.")
+        print(f"Details: {e}")
+
+if __name__ == "__main__":
+    target_site = input("Enter the website to scan (e.g., github.com): ").strip()
+    audit_security_headers(target_site)
