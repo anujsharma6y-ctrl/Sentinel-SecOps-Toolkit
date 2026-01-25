@@ -1,0 +1,62 @@
+import re
+import os
+import smtplib
+from email.message import EmailMessage
+
+# --- CONFIGURATION ---
+LOG_FILE = "server.log"
+RECEIVER_MAIL = "your_email@gmail.com" 
+SENDER_MAIL = "your_bot@gmail.com"      
+APP_PASS = "xxxx xxxx xxxx xxxx"       
+
+def send_alert_email(error_report):
+    """Function to handle the mailing process."""
+    msg = EmailMessage()
+    msg.set_content(f"System Audit Report:\n\n{error_report}")
+    msg['Subject'] = " CRITICAL: Log Error Detected"
+    msg['From'] = SENDER_MAIL
+    msg['To'] = RECEIVER_MAIL
+
+    try:
+        # Standard Gmail SMTP settings
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SENDER_MAIL, APP_PASS)
+            smtp.send_message(msg)
+        print(" SUCCESS: Email alert sent to Admin!", flush=True)
+    except Exception as e:
+        print(f"  MAILER NOTE: Email not sent. (Reason: {e})", flush=True)
+
+def run_log_auditor(file_path):
+    print("\n" + "="*50)
+    print(" STARTING LOG GREPPER & MAILER...")
+    print("="*50, flush=True)
+
+    # 1. Create a dummy file if it doesn't exist (To ensure output)
+    if not os.path.exists(file_path):
+        print(f"Creating test file: {file_path}", flush=True)
+        with open(file_path, "w") as f:
+            f.write("INFO: System Check\nERROR: Database fail\nCRITICAL: CPU Overheat")
+
+    # 2. Scanning Logic
+    error_pattern = re.compile(r"ERROR|CRITICAL|FAIL", re.IGNORECASE)
+    found_errors = []
+
+    with open(file_path, "r") as f:
+        for line_no, line in enumerate(f, 1):
+            if error_pattern.search(line):
+                error_detail = f"Line {line_no}: {line.strip()}"
+                found_errors.append(error_detail)
+                print(f" MATCH: {error_detail}", flush=True)
+
+    # 3. Trigger Mailer if errors found
+    if found_errors:
+        report = "\n".join(found_errors)
+        print(f"\nFound {len(found_errors)} issues. Triggering Mailer...", flush=True)
+        send_alert_email(report)
+    else:
+        print(" No issues found. Mailer skipped.", flush=True)
+
+    print("="*50 + "\n")
+
+if __name__ == "__main__":
+    run_log_auditor(LOG_FILE)
