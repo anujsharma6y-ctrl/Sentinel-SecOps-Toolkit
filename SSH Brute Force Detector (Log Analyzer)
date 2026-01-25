@@ -1,0 +1,38 @@
+import re
+from collections import Counter
+
+# Fake log data (Simulating a real /var/log/auth.log file)
+log_data = """
+Jan 24 10:00:01 server sshd[1234]: Failed password for root from 192.168.1.50 port 22 ssh2
+Jan 24 10:00:05 server sshd[1234]: Failed password for root from 192.168.1.50 port 22 ssh2
+Jan 24 10:00:10 server sshd[1234]: Accepted password for admin from 10.0.0.5 port 22 ssh2
+Jan 24 10:00:15 server sshd[1234]: Failed password for invalid user bob from 192.168.1.50 port 22 ssh2
+Jan 24 10:00:20 server sshd[1234]: Failed password for root from 172.16.0.5 port 22 ssh2
+Jan 24 10:00:25 server sshd[1234]: Failed password for root from 192.168.1.50 port 22 ssh2
+Jan 24 10:00:30 server sshd[1234]: Failed password for root from 192.168.1.50 port 22 ssh2
+"""
+
+def detect_bruteforce(logs, threshold=4):
+    print(" Analyzing Logs for Brute Force Attacks...\n")
+    
+    # 1. Regex to find IP addresses that had a "Failed password"
+    # Ye pattern 'Failed password' ke baad waale IP ko nikalta hai
+    failed_ips = re.findall(r"Failed password .* from ([\d\.]+)", logs)
+    
+    # 2. Count failures per IP
+    ip_counts = Counter(failed_ips)
+    
+    # 3. Check against threshold
+    found_attacker = False
+    for ip, count in ip_counts.items():
+        if count >= threshold:
+            print(f" ALERT: Brute Force Detected from IP: {ip}")
+            print(f" Total Failed Attempts: {count}")
+            print(f" Action: SIMULATING IP BLOCK (iptables -A INPUT -s {ip} -j DROP)\n")
+            found_attacker = True
+            
+    if not found_attacker:
+        print(" No suspicious activity detected.")
+
+if __name__ == "__main__":
+    detect_bruteforce(log_data)
