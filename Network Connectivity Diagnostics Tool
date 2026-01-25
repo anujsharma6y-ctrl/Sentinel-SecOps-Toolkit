@@ -1,0 +1,45 @@
+import socket
+import os
+import platform
+import time
+def check_connectivity(host="8.8.8.8", port=53, timeout=3):
+    #Checks if the system can reach a public DNS server (Google).
+    print(f"\n{'='*50}")
+    print(f" NETWORK DIAGNOSTICS STARTING...")
+    print(f"{'='*50}\n")
+    # --- STEP 1: PING TEST ---
+    print(f"1. Testing Latency (Ping)...", end=" ", flush=True)
+    # Different command for Windows (-n) and Linux (-c)
+    param = "-n" if platform.system().lower() == "windows" else "-c"
+    command = f"ping {param} 1 {host} > nul" # > nul hides the messy output
+    start_time = time.time()
+    response = os.system(command)
+    end_time = time.time()
+    if response == 0:
+        latency = round((end_time - start_time) * 1000, 2)
+        print(f" SUCCESS ({latency}ms)")
+    else:
+        print(" FAILED (Request Timed Out)")
+
+    # --- STEP 2: DNS RESOLUTION TEST ---
+    print(f"2. Testing DNS (google.com)...", end=" ", flush=True)
+    try:
+        socket.gethostbyname("google.com")
+        print(" SUCCESS")
+    except socket.gaierror:
+        print(" FAILED (DNS cannot resolve names)")
+        # --- STEP 3: PORT CONNECTION (HTTP) ---
+    print(f"3. Testing Web Port (80)...", end=" ", flush=True)
+    try:
+        # Trying to open a socket connection to google.com on port 80
+        socket.create_connection(("www.google.com", 80), timeout=timeout)
+        print(" SUCCESS")
+    except Exception:
+        print(" FAILED (Port blocked or No Internet)")
+
+    print(f"\n{'='*50}")
+    print(" DIAGNOSTICS COMPLETE")
+    print(f"{'='*50}\n")
+
+if __name__ == "__main__":
+    check_connectivity()
