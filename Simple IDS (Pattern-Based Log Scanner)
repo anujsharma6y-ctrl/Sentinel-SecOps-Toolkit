@@ -1,0 +1,42 @@
+import re
+
+# Simulated Web Server Logs (Access Logs)
+web_logs = [
+    '192.168.1.10 - - [24/Jan/2026:10:01:05] "GET /index.html HTTP/1.1" 200',
+    '10.0.0.15 - - [24/Jan/2026:10:02:10] "GET /login.php?id=1%27%20OR%201=1 HTTP/1.1" 200',
+    '192.168.1.20 - - [24/Jan/2026:10:03:15] "GET /search?q=<script>alert(1)</script> HTTP/1.1" 404',
+    '172.16.0.5 - - [24/Jan/2026:10:04:20] "GET /../../etc/passwd HTTP/1.1" 403',
+    '192.168.1.10 - - [24/Jan/2026:10:05:00] "POST /contact HTTP/1.1" 200'
+]
+
+def simple_ids(logs):
+    # Attack Signatures (Patterns)
+    # We use URL-encoded patterns as well as plain text
+    rules = {
+        "SQL Injection": r"OR%201=1|UNION%20SELECT|' OR '1'='1",
+        "XSS Attack": r"<script>|%3Cscript%3E|alert\(",
+        "Path Traversal": r"\.\./\.\./etc/passwd",
+    }
+
+    print("  IDS Engine Active: Scanning Traffic Logs for Threats...\n")
+    print(f"{'SOURCE IP':<15} | {'ATTACK TYPE':<20} | {'STATUS'}")
+    print("-" * 55)
+
+    alert_count = 0
+
+    for log in logs:
+        for attack_name, pattern in rules.items():
+            # Using re.IGNORECASE to catch 'SCRIPT' or 'script'
+            if re.search(pattern, log, re.IGNORECASE):
+                # Extract the IP address (the first element in the log line)
+                ip = log.split(" ")[0]
+                print(f" {ip:<13} | {attack_name:<20} | DETECTED")
+                alert_count += 1
+    
+    if alert_count == 0:
+        print(" Analysis Complete: No malicious patterns detected.")
+    else:
+        print(f"\n Total Security Alerts Generated: {alert_count}")
+
+if __name__ == "__main__":
+    simple_ids(web_logs)
