@@ -1,0 +1,47 @@
+import socket
+import threading
+from queue import Queue
+
+# 1. Configuration
+target = "scanme.nmap.org" # Legally allowed target for testing
+print_lock = threading.Lock()
+
+def port_scan(port):
+    """Attempts to connect to a specific port on the target."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.settimeout(1) # Wait for max 1 second for a response
+        # Attempt to establish a connection (The TCP Handshake)
+        con = s.connect((target, port))
+        with print_lock:
+            print(f" Port {port:<5} : OPEN")
+        con.close()
+    except:
+        # If connection fails, the port is either closed or filtered
+        pass
+
+def threader():
+    """The worker function that fetches ports from the Queue."""
+    while True:
+        worker = q.get() # Get a port number from the queue
+        port_scan(worker) # Scan it
+        q.task_done() # Signal that the job is finished
+
+# 2. Queue and Thread Initialization
+q = Queue()
+
+# Create 100 worker threads
+for x in range(100):
+    t = threading.Thread(target=threader)
+    t.daemon = True # Ensures threads die when the main script exits
+    t.start()
+
+# 3. Queueing Ports and Execution
+print(f" Starting Multi-threaded Scan on {target}...\n")
+common_ports = [21, 22, 23, 25, 53, 80, 110, 443, 445, 3306, 3389]
+
+for port in common_ports:
+    q.put(port)
+
+q.join() # Wait for all threads to finish their tasks
+print("\n Scan Complete.")
