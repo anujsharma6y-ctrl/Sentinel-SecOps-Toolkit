@@ -63,9 +63,7 @@ Language: Python 3.x
 ├── 07_Password_Analyzer/   # Credential Audit
 ├── 08_Net_Diagnostics/     # Network Health
 └── 09_IR_Automator/        # Response Playbooks
+Libraries Used: socket, threading, hashlib, os, re, smtplib, psutil, datetime
+Platform: Linux (Ubuntu/Debian) & Windows (Admin privileges required for some tools)
 👨‍💻 Author
 Anuj Sharma Cybersecurity Enthusiast | Security Automation Specialist | Python for SecOps
-
-Libraries Used: socket, threading, hashlib, os, re, smtplib, psutil, datetime
-
-Platform: Linux (Ubuntu/Debian) & Windows (Admin privileges required for some tools)
