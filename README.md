@@ -4,6 +4,8 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![Security Status](https://img.shields.io/badge/Security-Audited-red.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 This repository contains 9 specialized security tools:
 🛡️ Sentinel-SecOps-Suite
 This repository contains 9 high-performance security automation tools designed to streamline threat detection, system forensics, and incident response. From high-speed network scanning to automated malware containment, this suite provides a centralized Python-driven defense mechanism for modern SecOps.
