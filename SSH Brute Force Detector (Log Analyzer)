@@ -16,7 +16,7 @@ def detect_bruteforce(logs, threshold=4):
     print(" Analyzing Logs for Brute Force Attacks...\n")
     
     # 1. Regex to find IP addresses that had a "Failed password"
-    # Ye pattern 'Failed password' ke baad waale IP ko nikalta hai
+  
     failed_ips = re.findall(r"Failed password .* from ([\d\.]+)", logs)
     
     # 2. Count failures per IP
